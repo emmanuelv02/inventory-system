@@ -22,4 +22,11 @@ export class InventoryController {
   registerInventory(@Body() registerInventoryDto: RegisterInventoryDto) {
     return this.inventoryService.registerInventory(registerInventoryDto);
   }
+
+  @Get(':productId/movements')
+  getProductMovements(
+    @Param('productId', new ParseUUIDPipe()) productId: string,
+  ) {
+    return this.inventoryService.getProductMovements(productId);
+  }
 }

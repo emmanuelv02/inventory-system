@@ -12,6 +12,9 @@ export class InventoryService {
     @InjectRepository(ProductInventory)
     private readonly productInventoryRepository: Repository<ProductInventory>,
 
+    @InjectRepository(ProductMovement)
+    private readonly productMovementRepository: Repository<ProductMovement>,
+
     private readonly dataSource: DataSource,
   ) {}
 
@@ -65,5 +68,12 @@ export class InventoryService {
         await transactionalEntityManager.save(productMovement);
       },
     );
+  }
+
+  async getProductMovements(productId: string): Promise<ProductMovement[]> {
+    return this.productMovementRepository.find({
+      where: { productId },
+      order: { createdAt: 'DESC' },
+    });
   }
 }
