@@ -24,13 +24,19 @@ export class ProductController {
   }
 
   @Get(':id')
-  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.productService.findOne(id);
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query('currency') currency?: string,
+  ) {
+    return this.productService.findOneWithCurrency(id, currency);
   }
 
   @Get()
-  findAll(@Query() query: FindAllFiltersDto) {
-    return this.productService.findAll(query);
+  findAll(
+    @Query() query: FindAllFiltersDto,
+    @Query('currency') currency?: string,
+  ) {
+    return this.productService.findAll(query, currency);
   }
 
   @Put(':id')
