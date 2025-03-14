@@ -1,0 +1,30 @@
+{
+  "name": "inventory-system",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "start:dev": "turbo run start:dev",
+    "start:prod": "turbo run start:prod",
+    "test": "turbo run test",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "turbo": "^2.4.4",
+    "typescript": "5.8.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "npm@10.2.1",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "dependencies": {
+    "@nestjs/microservices": "^11.0.11"
+  }
+}
