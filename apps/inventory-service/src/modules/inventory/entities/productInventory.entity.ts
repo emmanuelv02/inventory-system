@@ -3,25 +3,23 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('movements')
-export class InventoryMovement {
+@Entity()
+export class ProductInventory {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ type: 'uuid' })
   productId: string;
 
-  @Column('integer')
+  @Column({ type: 'int' })
   quantity: number;
-
-  @Column()
-  description: string;
-
-  @Column('integer')
-  newQuantity: number;
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
