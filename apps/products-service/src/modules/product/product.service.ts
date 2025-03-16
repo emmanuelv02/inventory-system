@@ -78,21 +78,24 @@ export class ProductService {
     return result;
   }
 
-  async findOne(id: string): Promise<Product> {
-    const result = await this.productRepository.findOne({
-      where: { id },
-    });
+  async findOneWithCurrency(id: string, currency?: string): Promise<Product> {
+    const cacheKeyPrefix = `products:${id}`;
+    const cacheKey = currency
+      ? cacheKeyPrefix + `:${currency}`
+      : cacheKeyPrefix;
 
-    if (!result) throw new NotFoundException();
+    const cachedResult = await this.cacheService.get<Product>(cacheKey);
+    if (cachedResult) return cachedResult;
+
+    const product = await this.findOne(id);
+
+    const result = currency
+      ? (await this.convertCurrency([product], currency))[0]
+      : product;
+
+    await this.cacheService.set(cacheKey, result);
+
     return result;
-  }
-
-  async findOneWithCurrency(id: string, currency?: string) {
-    const result = await this.findOne(id);
-
-    return currency
-      ? (await this.convertCurrency([result], currency))[0]
-      : result;
   }
 
   async update(
@@ -169,6 +172,16 @@ export class ProductService {
     }
 
     throw new NotFoundException();
+  }
+
+  private async findOne(id: string): Promise<Product> {
+    const result = await this.productRepository.findOne({
+      where: { id },
+    });
+
+    if (!result) throw new NotFoundException();
+
+    return result;
   }
 
   private async convertCurrency<T extends { price: number }>(
