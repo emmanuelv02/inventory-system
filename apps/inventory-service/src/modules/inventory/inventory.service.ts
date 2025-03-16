@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { ProductInventory } from './entities/productInventory.entity';
@@ -45,6 +49,8 @@ export class InventoryService {
     const productInventory = await this.productInventoryRepository.findOne({
       where: { productId: registerInventoryDto.productId },
     });
+
+    if (!productInventory) throw new NotFoundException();
 
     let newQuantity = registerInventoryDto.quantity;
 

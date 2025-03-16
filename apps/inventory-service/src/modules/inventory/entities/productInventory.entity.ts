@@ -14,6 +14,9 @@ export class ProductInventory {
   @Column({ type: 'uuid' })
   productId: string;
 
+  @Column()
+  productName: string;
+
   @Column({ type: 'int' })
   quantity: number;
 
