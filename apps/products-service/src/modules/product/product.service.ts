@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,6 +13,8 @@ import { FindAllFiltersDto } from './dtos/findAllFilters.dto';
 import { ExchangeService } from '../exchange/exchange.service';
 import { PriceHistory } from './entities/priceHistory.entity';
 import { CacheService } from '../cache/cache.service';
+import { ClientProxy } from '@nestjs/microservices';
+import { ProductEvent, ProductEventType } from './events/product.events';
 
 @Injectable()
 export class ProductService {
@@ -24,6 +27,8 @@ export class ProductService {
     private readonly exchangeService: ExchangeService,
     private readonly dataSource: DataSource,
     private readonly cacheService: CacheService,
+
+    @Inject('PRODUCTS_SERVICE') private readonly rabbitClient: ClientProxy,
   ) {}
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
@@ -50,6 +55,8 @@ export class ProductService {
     delete product.priceHistory;
 
     await this.clearProductsCache();
+
+    this.sendProductEvent(product, ProductEventType.CREATED);
 
     return product;
   }
@@ -128,6 +135,7 @@ export class ProductService {
 
         await this.clearProductCache(id);
         await this.clearProductsCache();
+        this.sendProductEvent(product, ProductEventType.UPDATED);
       },
     );
 
@@ -140,6 +148,8 @@ export class ProductService {
 
     await this.clearProductCache(id);
     await this.clearProductsCache();
+
+    this.sendProductEvent(product, ProductEventType.DELETED);
 
     return result;
   }
@@ -202,5 +212,9 @@ export class ProductService {
 
   private clearProductsCache(): Promise<number> {
     return this.cacheService.deleteKeysByPattern(`products:all*`);
+  }
+
+  private sendProductEvent(product: Product, eventType: ProductEventType) {
+    this.rabbitClient.emit(eventType, new ProductEvent(product, eventType));
   }
 }
