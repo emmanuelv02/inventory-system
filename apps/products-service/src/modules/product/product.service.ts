@@ -11,6 +11,7 @@ import { UpdateProductDto } from './dtos/updateProduct.dto';
 import { FindAllFiltersDto } from './dtos/findAllFilters.dto';
 import { ExchangeService } from '../exchange/exchange.service';
 import { PriceHistory } from './entities/priceHistory.entity';
+import { CacheService } from '../cache/cache.service';
 
 @Injectable()
 export class ProductService {
@@ -22,6 +23,7 @@ export class ProductService {
     private readonly priceHistoryRepository: Repository<PriceHistory>,
     private readonly exchangeService: ExchangeService,
     private readonly dataSource: DataSource,
+    private readonly cacheService: CacheService,
   ) {}
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
@@ -46,6 +48,9 @@ export class ProductService {
 
     await this.productRepository.save(product);
     delete product.priceHistory;
+
+    await this.clearProductsCache();
+
     return product;
   }
 
@@ -58,10 +63,22 @@ export class ProductService {
       order: { createdAt: 'DESC' },
     });
 
-    return currency ? this.convertCurrency(products, currency) : products;
+    const cacheKeyPrefix = 'products:all';
+    let cacheKey = currency ? `${cacheKeyPrefix}:${currency}` : cacheKeyPrefix;
+    if (filters?.category) cacheKey += `:category:${filters.category}`;
+
+    const cachedResult = await this.cacheService.get<Product[]>(cacheKey);
+    if (cachedResult) return cachedResult;
+
+    const result = currency
+      ? await this.convertCurrency(products, currency)
+      : products;
+
+    await this.cacheService.set(cacheKey, result);
+    return result;
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<Product> {
     const result = await this.productRepository.findOne({
       where: { id },
     });
@@ -105,6 +122,9 @@ export class ProductService {
 
         Object.assign(product, updatedProduct);
         await transactionalEntityManager.save(product);
+
+        await this.clearProductCache(id);
+        await this.clearProductsCache();
       },
     );
 
@@ -113,17 +133,40 @@ export class ProductService {
 
   async remove(id: string): Promise<Product> {
     const product = await this.findOne(id);
-    return this.productRepository.remove(product);
+    const result = this.productRepository.remove(product);
+
+    await this.clearProductCache(id);
+    await this.clearProductsCache();
+
+    return result;
   }
 
-  async getPriceHistory(id: string, currency?: string) {
+  async getPriceHistory(
+    id: string,
+    currency?: string,
+  ): Promise<PriceHistory[]> {
     const result = await this.priceHistoryRepository.find({
       where: { productId: id },
       order: { createdAt: 'DESC' },
     });
 
-    if (result?.length > 0)
-      return currency ? this.convertCurrency(result, currency) : result;
+    const cacheKeyPrefix = `products:${id}:price-history`;
+    const cacheKey = currency
+      ? cacheKeyPrefix + `:${currency}`
+      : cacheKeyPrefix;
+
+    const cachedResult = await this.cacheService.get<PriceHistory[]>(cacheKey);
+    if (cachedResult) return cachedResult;
+
+    if (result?.length > 0) {
+      const finalResult = currency
+        ? this.convertCurrency(result, currency)
+        : result;
+
+      await this.cacheService.set<PriceHistory[]>(cacheKey, result);
+
+      return finalResult;
+    }
 
     throw new NotFoundException();
   }
@@ -138,5 +181,13 @@ export class ProductService {
       ...item,
       price: Number.parseFloat((item.price * rate).toFixed(2)),
     }));
+  }
+
+  private clearProductCache(id: string): Promise<number> {
+    return this.cacheService.deleteKeysByPattern(`products:${id}*`);
+  }
+
+  private clearProductsCache(): Promise<number> {
+    return this.cacheService.deleteKeysByPattern(`products:all*`);
   }
 }
