@@ -51,4 +51,12 @@ export class ProductController {
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.productService.remove(id);
   }
+
+  @Get(':id/price-history')
+  getPriceHistory(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query('currency') currency?: string,
+  ) {
+    return this.productService.getPriceHistory(id, currency);
+  }
 }

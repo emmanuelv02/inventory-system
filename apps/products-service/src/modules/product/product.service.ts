@@ -6,10 +6,11 @@ import {
 import { CreateProductDto } from './dtos/createProduct.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { UpdateProductDto } from './dtos/updateProduct.dto';
 import { FindAllFiltersDto } from './dtos/findAllFilters.dto';
 import { ExchangeService } from '../exchange/exchange.service';
+import { PriceHistory } from './entities/priceHistory.entity';
 
 @Injectable()
 export class ProductService {
@@ -17,10 +18,13 @@ export class ProductService {
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
 
+    @InjectRepository(PriceHistory)
+    private readonly priceHistoryRepository: Repository<PriceHistory>,
     private readonly exchangeService: ExchangeService,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async create(createProductDto: CreateProductDto) {
+  async create(createProductDto: CreateProductDto): Promise<Product> {
     const existingSku = await this.productRepository.findOne({
       where: { sku: createProductDto.sku },
     });
@@ -29,10 +33,26 @@ export class ProductService {
       throw new BadRequestException('SKU already exists');
     }
 
-    return this.productRepository.save(createProductDto);
+    const product = {
+      ...new Product(),
+      ...createProductDto,
+    };
+
+    product.priceHistory = [];
+    product.priceHistory.push({
+      ...new PriceHistory(),
+      price: product.price,
+    });
+
+    await this.productRepository.save(product);
+    delete product.priceHistory;
+    return product;
   }
 
-  async findAll(filters: FindAllFiltersDto, currency?: string) {
+  async findAll(
+    filters: FindAllFiltersDto,
+    currency?: string,
+  ): Promise<Product[]> {
     const products = await this.productRepository.find({
       where: { ...filters },
       order: { createdAt: 'DESC' },
@@ -58,28 +78,65 @@ export class ProductService {
       : result;
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto) {
+  async update(
+    id: string,
+    updateProductDto: UpdateProductDto,
+  ): Promise<Product> {
     const product = await this.findOne(id);
+
+    const oldPrice = product.price;
 
     const updatedProduct = {
       ...product,
       ...updateProductDto,
     };
 
-    return this.productRepository.save(updatedProduct);
+    await this.dataSource.manager.transaction(
+      async (transactionalEntityManager) => {
+        if (oldPrice != updatedProduct.price) {
+          const priceHistory = new PriceHistory();
+          Object.assign(priceHistory, {
+            productId: product.id,
+            price: updatedProduct.price,
+          });
+
+          await transactionalEntityManager.save(priceHistory);
+        }
+
+        Object.assign(product, updatedProduct);
+        await transactionalEntityManager.save(product);
+      },
+    );
+
+    return product;
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<Product> {
     const product = await this.findOne(id);
     return this.productRepository.remove(product);
   }
 
-  private async convertCurrency(products: Product[], currency: string) {
+  async getPriceHistory(id: string, currency?: string) {
+    const result = await this.priceHistoryRepository.find({
+      where: { productId: id },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (result?.length > 0)
+      return currency ? this.convertCurrency(result, currency) : result;
+
+    throw new NotFoundException();
+  }
+
+  private async convertCurrency<T extends { price: number }>(
+    items: T[],
+    currency: string,
+  ): Promise<T[]> {
     const rate = await this.exchangeService.getExchangeRate(currency);
 
-    return products.map((product) => ({
-      ...product,
-      price: (product.price * rate).toFixed(2),
+    return items.map((item) => ({
+      ...item,
+      price: Number.parseFloat((item.price * rate).toFixed(2)),
     }));
   }
 }

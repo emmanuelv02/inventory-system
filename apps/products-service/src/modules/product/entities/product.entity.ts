@@ -2,9 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { PriceHistory } from './priceHistory.entity';
 
 @Entity('products')
 export class Product {
@@ -25,6 +27,11 @@ export class Product {
 
   @Column({ unique: true })
   sku: string;
+
+  @OneToMany(() => PriceHistory, (priceHistory) => priceHistory.product, {
+    cascade: true,
+  })
+  priceHistory?: PriceHistory[];
 
   @CreateDateColumn()
   createdAt: Date;
