@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { CacheService } from './cache.service';
-import { Redis } from 'ioredis';
 import { getRedisConnectionToken } from '@nestjs-modules/ioredis';
 
 describe('CacheService', () => {
   let service: CacheService;
-  let redis: Redis;
 
   // Mock Redis implementation
   const mockRedis = {
@@ -29,7 +27,6 @@ describe('CacheService', () => {
     }).compile();
 
     service = module.get<CacheService>(CacheService);
-    redis = module.get<Redis>(getRedisConnectionToken('default'));
   });
 
   it('should be defined', () => {
@@ -45,7 +42,7 @@ describe('CacheService', () => {
         'test-key',
       );
 
-      expect(redis.get).toHaveBeenCalledWith('test-key');
+      expect(mockRedis.get).toHaveBeenCalledWith('test-key');
       expect(result).toEqual(mockData);
     });
 
@@ -54,7 +51,7 @@ describe('CacheService', () => {
 
       const result = await service.get('non-existent-key');
 
-      expect(redis.get).toHaveBeenCalledWith('non-existent-key');
+      expect(mockRedis.get).toHaveBeenCalledWith('non-existent-key');
       expect(result).toBeNull();
     });
   });
@@ -69,7 +66,7 @@ describe('CacheService', () => {
 
       const result = await service.set('test-key', testData);
 
-      expect(redis.set).toHaveBeenCalledWith(
+      expect(mockRedis.set).toHaveBeenCalledWith(
         'test-key',
         JSON.stringify(testData),
         'EX',
@@ -89,7 +86,7 @@ describe('CacheService', () => {
 
       const result = await service.set('test-key', testData);
 
-      expect(redis.set).toHaveBeenCalledWith(
+      expect(mockRedis.set).toHaveBeenCalledWith(
         'test-key',
         JSON.stringify(testData),
         'EX',
@@ -108,7 +105,7 @@ describe('CacheService', () => {
 
       const result = await service.deleteKeys(keysToDelete);
 
-      expect(redis.del).toHaveBeenCalledWith(keysToDelete);
+      expect(mockRedis.del).toHaveBeenCalledWith(keysToDelete);
       expect(result).toBe(3);
     });
 
@@ -118,7 +115,7 @@ describe('CacheService', () => {
 
       const result = await service.deleteKeys(keysToDelete);
 
-      expect(redis.del).toHaveBeenCalledWith(keysToDelete);
+      expect(mockRedis.del).toHaveBeenCalledWith(keysToDelete);
       expect(result).toBe(0);
     });
   });

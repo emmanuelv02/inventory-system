@@ -49,14 +49,14 @@ export class ProductService {
       price: product.price,
     });
 
-    await this.productRepository.save(product);
-    delete product.priceHistory;
+    const result = await this.productRepository.save(product);
+    delete result.priceHistory;
 
     await this.clearProductsCache();
 
-    this.sendProductEvent(product, ProductEventType.CREATED);
+    this.sendProductEvent(result, ProductEventType.CREATED);
 
-    return product;
+    return result;
   }
 
   async findAll(
