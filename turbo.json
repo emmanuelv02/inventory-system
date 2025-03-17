@@ -21,6 +21,7 @@
       "dependsOn": ["^dev"],
       "inputs": [".env*"]
     },
-    "start:prod": {}
+    "start:prod": {},
+    "test": {}
   }
 }
