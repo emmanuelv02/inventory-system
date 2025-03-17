@@ -10,6 +10,7 @@ import { ProductStockDto } from './dtos/productStock.dto';
 import { ProductMovement } from './entities/productMovement.entity';
 import { RegisterInventoryDto } from './dtos/registerInventory.dto';
 import { CacheService } from '../cache/cache.service';
+import { Product } from '../events/models/product.interface';
 
 @Injectable()
 export class InventoryService {
@@ -24,17 +25,24 @@ export class InventoryService {
     private readonly cacheService: CacheService,
   ) {}
 
+  async findOne(productId: string) {
+    const productInventory = await this.productInventoryRepository.findOne({
+      where: { productId },
+    });
+
+    if (productInventory) return productInventory;
+    throw new NotFoundException();
+  }
+
   async getProductStock(productId: string): Promise<ProductStockDto> {
     const cacheKey = `stock:${productId}`;
     const cachedStock = await this.cacheService.get<ProductStockDto>(cacheKey);
     if (cachedStock) return cachedStock;
 
-    const productInventory = await this.productInventoryRepository.findOne({
-      where: { productId },
-    });
-
+    const productInventory = await this.findOne(productId);
     const result = {
       productId: productId,
+      productName: productInventory.productName,
       quantity: productInventory?.quantity || 0,
     };
 
@@ -43,14 +51,42 @@ export class InventoryService {
     return result;
   }
 
+  async initializeInventoryForProduct(product: Product) {
+    await this.registerInventory(
+      {
+        productId: product.id,
+        quantity: 0,
+        description: 'Product initialization',
+      },
+      { productName: product.name },
+    );
+  }
+
+  async updateProductName(product: Product): Promise<ProductInventory | null> {
+    const inventory = await this.findOne(product.id);
+    if (product.name == inventory.productName) return null;
+
+    inventory.productName = product.name;
+    return await this.productInventoryRepository.save(inventory);
+  }
+
+  async deleteProductInvetory(
+    product: Product,
+  ): Promise<ProductInventory | null> {
+    const inventory = await this.findOne(product.id);
+    return await this.productInventoryRepository.remove(inventory);
+  }
+
   async registerInventory(
     registerInventoryDto: RegisterInventoryDto,
+    initializationProperties?: { productName: string },
   ): Promise<void> {
     const productInventory = await this.productInventoryRepository.findOne({
       where: { productId: registerInventoryDto.productId },
     });
 
-    if (!productInventory) throw new NotFoundException();
+    if (!initializationProperties && !productInventory)
+      throw new NotFoundException();
 
     let newQuantity = registerInventoryDto.quantity;
 
@@ -71,6 +107,8 @@ export class InventoryService {
           const productInventory = new ProductInventory();
           productInventory.productId = registerInventoryDto.productId;
           productInventory.quantity = registerInventoryDto.quantity;
+          productInventory.productName =
+            initializationProperties?.productName ?? '';
 
           await transactionalEntityManager.save(productInventory);
         }
