@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -11,18 +12,19 @@ import { ProductMovement } from './entities/productMovement.entity';
 import { RegisterInventoryDto } from './dtos/registerInventory.dto';
 import { CacheService } from '../cache/cache.service';
 import { Product } from '../events/models/product.interface';
+import { ClientProxy } from '@nestjs/microservices';
+import { InventoryEvent, InventoryEventType } from './events/inventory.events';
 
 @Injectable()
 export class InventoryService {
   constructor(
     @InjectRepository(ProductInventory)
     private readonly productInventoryRepository: Repository<ProductInventory>,
-
     @InjectRepository(ProductMovement)
     private readonly productMovementRepository: Repository<ProductMovement>,
-
     private readonly dataSource: DataSource,
     private readonly cacheService: CacheService,
+    @Inject('INVENTORY_SERVICE') private readonly rabbitClient: ClientProxy,
   ) {}
 
   async findOne(productId: string) {
@@ -98,7 +100,13 @@ export class InventoryService {
           }
           productInventory.quantity += registerInventoryDto.quantity;
           newQuantity = productInventory.quantity;
-          await transactionalEntityManager.save(productInventory);
+          const inventory =
+            await transactionalEntityManager.save(productInventory);
+
+          this.rabbitClient.emit(
+            InventoryEventType.UPDATED,
+            new InventoryEvent(inventory, InventoryEventType.UPDATED),
+          );
         } else {
           if (registerInventoryDto.quantity < 0) {
             throw new BadRequestException('Insufficient stock');

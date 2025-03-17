@@ -21,13 +21,11 @@ export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-
     @InjectRepository(PriceHistory)
     private readonly priceHistoryRepository: Repository<PriceHistory>,
     private readonly exchangeService: ExchangeService,
     private readonly dataSource: DataSource,
     private readonly cacheService: CacheService,
-
     @Inject('PRODUCTS_SERVICE') private readonly rabbitClient: ClientProxy,
   ) {}
 
