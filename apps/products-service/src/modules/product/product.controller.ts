@@ -15,7 +15,7 @@ import { UpdateProductDto } from './dtos/updateProduct.dto';
 import { FindAllFiltersDto } from './dtos/findAllFilters.dto';
 import { Roles, UserRole } from '@repo/shared';
 
-@Controller('product')
+@Controller('api/product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
