@@ -3,7 +3,7 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from './database/typeorm.config';
 import { EventsModule } from './modules/events/events.module';
-import { SharedModule } from '@repo/shared/';
+import { MigrationService, SharedModule } from '@repo/shared/';
 @Module({
   imports: [
     SharedModule,
@@ -12,7 +12,7 @@ import { SharedModule } from '@repo/shared/';
     EventsModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [MigrationService],
   exports: [],
 })
 export class AppModule {}
