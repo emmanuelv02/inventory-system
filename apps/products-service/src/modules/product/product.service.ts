@@ -12,9 +12,9 @@ import { UpdateProductDto } from './dtos/updateProduct.dto';
 import { FindAllFiltersDto } from './dtos/findAllFilters.dto';
 import { ExchangeService } from '../exchange/exchange.service';
 import { PriceHistory } from './entities/priceHistory.entity';
-import { CacheService } from '../cache/cache.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { ProductEvent, ProductEventType } from './events/product.events';
+import { CacheService } from '@repo/shared';
 
 @Injectable()
 export class ProductService {

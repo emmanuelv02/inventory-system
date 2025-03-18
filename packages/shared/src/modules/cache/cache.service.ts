@@ -21,6 +21,14 @@ export class CacheService {
     );
   }
 
+  async deleteKeysByPattern(pattern: string): Promise<number> {
+    const keys = await this.redis.keys(pattern);
+    if (keys.length === 0) {
+      return 0;
+    }
+    return await this.redis.del(keys);
+  }
+
   async deleteKeys(keys: string[]): Promise<number> {
     return await this.redis.del(keys);
   }

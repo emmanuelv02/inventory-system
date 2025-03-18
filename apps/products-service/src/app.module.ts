@@ -2,9 +2,13 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from './database/typeorm.config';
 import { ProductModule } from './modules/product/product.module';
-import { CacheModule } from './modules/cache/cache.module';
 import { APP_GUARD } from '@nestjs/core';
-import { AuthModule, JwtAuthGuard, RolesGuard } from '@repo/shared';
+import {
+  AuthModule,
+  CacheModule,
+  JwtAuthGuard,
+  RolesGuard,
+} from '@repo/shared';
 
 @Module({
   imports: [

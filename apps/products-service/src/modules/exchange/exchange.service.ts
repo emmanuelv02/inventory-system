@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
+import { CacheService } from '@repo/shared';
 import { lastValueFrom } from 'rxjs';
-import { CacheService } from '../cache/cache.service';
 
 @Injectable()
 export class ExchangeService {
