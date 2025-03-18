@@ -138,7 +138,7 @@ cd inventory-system
 
 2. Set up environment variables:
    - Copy the example .env files in each service directory
-   - Update with your specific configuration values
+   - Rename the `.env.example` files located in the root of each microservice with `.env` to use the application with the default configuration.
 
 3. Start the system using Docker Compose:
 ```bash
