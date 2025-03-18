@@ -13,8 +13,7 @@ import { CreateProductDto } from './dtos/createProduct.dto';
 import { ProductService } from './product.service';
 import { UpdateProductDto } from './dtos/updateProduct.dto';
 import { FindAllFiltersDto } from './dtos/findAllFilters.dto';
-import { Roles } from '../auth/models/roles.decorator';
-import { UserRole } from '../auth/models/user-role.enum';
+import { Roles, UserRole } from '@repo/shared';
 
 @Controller('product')
 export class ProductController {
