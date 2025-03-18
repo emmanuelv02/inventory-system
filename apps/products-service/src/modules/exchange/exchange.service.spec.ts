@@ -2,10 +2,10 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpService } from '@nestjs/axios';
-import { CacheService } from '../cache/cache.service';
 import { of, throwError } from 'rxjs';
 import { AxiosResponse } from 'axios';
 import { ExchangeService } from './exchange.service';
+import { CacheService } from '@repo/shared';
 
 describe('ExchangeService', () => {
   let service: ExchangeService;
