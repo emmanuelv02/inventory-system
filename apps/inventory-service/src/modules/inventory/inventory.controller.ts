@@ -8,8 +8,7 @@ import {
 } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { RegisterInventoryDto } from './dtos/registerInventory.dto';
-import { Roles } from '../auth/models/roles.decorator';
-import { UserRole } from '../auth/models/user-role.enum';
+import { Roles, UserRole } from '@repo/shared';
 
 @Controller('inventory')
 export class InventoryController {

@@ -25,6 +25,7 @@
     "packages/*"
   ],
   "dependencies": {
+    "@repo/shared" : "*",
     "@nestjs-modules/ioredis": "^2.0.2",
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/microservices": "^11.0.11",
