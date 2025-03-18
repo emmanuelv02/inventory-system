@@ -14,6 +14,8 @@ import { ProductService } from './product.service';
 import { UpdateProductDto } from './dtos/updateProduct.dto';
 import { FindAllFiltersDto } from './dtos/findAllFilters.dto';
 import { Roles, UserRole } from '@repo/shared';
+import { Product } from './entities/product.entity';
+import { PriceHistory } from './entities/priceHistory.entity';
 
 @Controller('api/product')
 export class ProductController {
@@ -21,7 +23,7 @@ export class ProductController {
 
   @Post()
   @Roles(UserRole.ADMIN)
-  create(@Body() createProductDto: CreateProductDto) {
+  create(@Body() createProductDto: CreateProductDto): Promise<Product> {
     return this.productService.create(createProductDto);
   }
 
@@ -30,7 +32,7 @@ export class ProductController {
   findOne(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Query('currency') currency?: string,
-  ) {
+  ): Promise<Product> {
     return this.productService.findOneWithCurrency(id, currency);
   }
 
@@ -39,7 +41,7 @@ export class ProductController {
   findAll(
     @Query() query: FindAllFiltersDto,
     @Query('currency') currency?: string,
-  ) {
+  ): Promise<Product[]> {
     return this.productService.findAll(query, currency);
   }
 
@@ -48,13 +50,13 @@ export class ProductController {
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateProductDto: UpdateProductDto,
-  ) {
+  ): Promise<Product> {
     return this.productService.update(id, updateProductDto);
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  remove(@Param('id', new ParseUUIDPipe()) id: string) {
+  remove(@Param('id', new ParseUUIDPipe()) id: string): Promise<Product> {
     return this.productService.remove(id);
   }
 
@@ -63,7 +65,7 @@ export class ProductController {
   getPriceHistory(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Query('currency') currency?: string,
-  ) {
+  ): Promise<PriceHistory[]> {
     return this.productService.getPriceHistory(id, currency);
   }
 }

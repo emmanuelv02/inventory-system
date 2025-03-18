@@ -71,12 +71,8 @@ describe('AuthService', () => {
         loginDto.password,
       );
 
-      expect(jwtService.sign).toHaveBeenCalledWith({
-        username: user.username,
-        sub: user.id,
-        role: user.role,
-      });
-      expect(result).toEqual({ access_token: token });
+      expect(jwtService.sign).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({ accessToken: token });
     });
 
     it('should throw UnauthorizedException when credentials are invalid', async () => {

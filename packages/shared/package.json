@@ -7,7 +7,8 @@
   "main": "./dist/index.js",
   "scripts": {
     "build": "nest build",
-    "test": "jest"
+    "test": "jest",
+    "test:cov": "jest --coverage"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
