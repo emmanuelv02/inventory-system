@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  # Database for Product Service
+  product-db:
+    image: postgres:14
+    container_name: product-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: product_service
+    ports:
+      - '5432:5432'
+    volumes:
+      - product-db-data:/var/lib/postgresql/data
+    networks:
+      - inventory-system-network
+
+  # Database for Inventory Service
+  inventory-db:
+    image: postgres:14
+    container_name: inventory-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: inventory_service
+    ports:
+      - '5433:5432'
+    volumes:
+      - inventory-db-data:/var/lib/postgresql/data
+    networks:
+      - inventory-system-network
+
+  # RabbitMQ for event messaging
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - '5672:5672'  # AMQP port
+      - '15672:15672'  # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - inventory-system-network
+
+  # Redis for caching
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    networks:
+      - inventory-system-network
+
+  # Product Service
+  products-service:
+    build:
+      context: .
+      dockerfile: ./apps/products-service/Dockerfile
+    container_name: products-service
+    environment:
+      NODE_ENV: development
+      PORT: 3002
+      DB_HOST: product-db
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_DATABASE: product_service
+      RABBITMQ_URL: amqp://rabbitmq:5672
+      REDIS_HOST: redis://redis:6379
+      JWT_SECRET: my-secret-key
+      EXCHANGE_RATE_API_KEY: 496b21abcdc85fbd7d2d1520
+      BASE_CURRENCY: DOP
+    ports:
+      - '3002:3002'
+    depends_on:
+      - product-db
+      - rabbitmq
+      - redis
+    networks:
+      - inventory-system-network
+
+  # Inventory Service
+  inventory-service:
+    build:
+      context: .
+      dockerfile: ./apps/inventory-service/Dockerfile
+    container_name: inventory-service
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DB_HOST: inventory-db
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_DATABASE: inventory_service
+      RABBITMQ_URL: amqp://rabbitmq:5672
+      REDIS_HOST: redis://redis:6379
+      JWT_SECRET: my-secret-key
+    ports:
+      - '3001:3001'
+    depends_on:
+      - inventory-db
+      - rabbitmq
+      - redis
+    networks:
+      - inventory-system-network
+
+volumes:
+  product-db-data:
+  inventory-db-data:
+  rabbitmq-data:
+  redis-data:
+
+networks:
+  inventory-system-network:
+    driver: bridge
