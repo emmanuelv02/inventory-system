@@ -8,9 +8,8 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { InventoryService } from '../inventory.service';
 import { ProductInventory } from '../entities/productInventory.entity';
 import { ProductMovement } from '../entities/productMovement.entity';
-import { Product } from '../../events/models/product.interface';
 import { InventoryEventType } from '../events/inventory.events';
-import { CacheService } from '@repo/shared';
+import { CacheService, Product } from '@repo/shared';
 
 describe('InventoryService', () => {
   let service: InventoryService;

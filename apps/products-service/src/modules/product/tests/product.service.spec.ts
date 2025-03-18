@@ -7,8 +7,7 @@ import { ProductService } from '../product.service';
 import { Product } from '../entities/product.entity';
 import { PriceHistory } from '../entities/priceHistory.entity';
 import { ExchangeService } from '../../exchange/exchange.service';
-import { ProductEventType } from '../events/product.events';
-import { CacheService } from '@repo/shared';
+import { CacheService, ProductEventType } from '@repo/shared';
 
 describe('ProductService', () => {
   let service: ProductService;

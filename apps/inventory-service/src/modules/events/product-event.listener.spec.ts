@@ -5,10 +5,9 @@ import { InventoryService } from '../inventory/inventory.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ProcessedEvent } from './entities/processed-event.entity';
 import { Repository } from 'typeorm';
-import { ProductEvent, ProductEventType } from './models/product.events';
-import { Product } from './models/product.interface';
 import { RmqContext } from '@nestjs/microservices';
 import { ProductEventsListener } from './product-events.listener';
+import { Product, ProductEvent, ProductEventType } from '@repo/shared';
 
 describe('ProductEventsListener', () => {
   let listener: ProductEventsListener;

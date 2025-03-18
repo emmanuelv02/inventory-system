@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Controller, Logger } from '@nestjs/common';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
-import { ProductEvent, ProductEventType } from './models/product.events';
 import { InventoryService } from '../inventory/inventory.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProcessedEvent } from './entities/processed-event.entity';
 import { Repository } from 'typeorm';
-import { Product } from './models/product.interface';
+import { Product, ProductEvent, ProductEventType } from '@repo/shared';
 
 @Controller()
 export class ProductEventsListener {

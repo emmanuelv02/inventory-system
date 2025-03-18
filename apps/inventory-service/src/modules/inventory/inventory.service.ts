@@ -10,10 +10,9 @@ import { ProductInventory } from './entities/productInventory.entity';
 import { ProductStockDto } from './dtos/productStock.dto';
 import { ProductMovement } from './entities/productMovement.entity';
 import { RegisterInventoryDto } from './dtos/registerInventory.dto';
-import { Product } from '../events/models/product.interface';
 import { ClientProxy } from '@nestjs/microservices';
 import { InventoryEvent, InventoryEventType } from './events/inventory.events';
-import { CacheService } from '@repo/shared';
+import { CacheService, Product } from '@repo/shared';
 
 @Injectable()
 export class InventoryService {

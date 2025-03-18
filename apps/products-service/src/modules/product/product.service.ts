@@ -13,8 +13,7 @@ import { FindAllFiltersDto } from './dtos/findAllFilters.dto';
 import { ExchangeService } from '../exchange/exchange.service';
 import { PriceHistory } from './entities/priceHistory.entity';
 import { ClientProxy } from '@nestjs/microservices';
-import { ProductEvent, ProductEventType } from './events/product.events';
-import { CacheService } from '@repo/shared';
+import { CacheService, ProductEvent, ProductEventType } from '@repo/shared';
 
 @Injectable()
 export class ProductService {

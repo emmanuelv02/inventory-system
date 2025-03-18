@@ -1,5 +1,4 @@
-import { Product } from '../entities/product.entity';
-import { v4 } from 'uuid';
+import {v4} from 'uuid';
 
 export enum ProductEventType {
   CREATED = 'product.created',
@@ -12,7 +11,7 @@ export class ProductEvent {
     this.id = product.id;
     this.product = product;
     this.type = eventType;
-    this.metadata = { correlationId: v4() };
+    this.metadata = {correlationId: v4()};
   }
 
   id: string;
@@ -21,4 +20,15 @@ export class ProductEvent {
   metadata: {
     correlationId: string;
   };
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  sku: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
