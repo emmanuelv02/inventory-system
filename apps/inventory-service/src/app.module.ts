@@ -3,32 +3,16 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from './database/typeorm.config';
 import { EventsModule } from './modules/events/events.module';
-import {
-  AuthModule,
-  CacheModule,
-  JwtAuthGuard,
-  RolesGuard,
-} from '@repo/shared/';
-import { APP_GUARD } from '@nestjs/core';
+import { SharedModule } from '@repo/shared/';
 @Module({
   imports: [
+    SharedModule,
     TypeOrmModule.forRoot(dataSourceOptions),
     InventoryModule,
-    CacheModule,
     EventsModule,
-    AuthModule,
   ],
   controllers: [],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
-    },
-  ],
+  providers: [],
   exports: [],
 })
 export class AppModule {}
